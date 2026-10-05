@@ -1,0 +1,42 @@
+MERN - KIỂM TRA GIỮA KỲ
+
+Cài đặt & chạy:
+  npm install
+  npm start            (mặc định: http://localhost:8080, MongoDB: mongodb://127.0.0.1:27017/midtest-web99)
+  Có thể đổi bằng biến môi trường PORT, MONGO_URI
+
+Cấu trúc thư mục:
+  controller/   xử lý logic (user.controller.js, post.controller.js)
+  middlewares/  xác thực apiKey (auth.middleware.js)
+  model/        mongoose schema (user.model.js, post.model.js)
+  routes/       định nghĩa route (user.route.js, post.route.js)
+  index.js      khởi tạo server, kết nối MongoDB
+
+API:
+1. POST /users/register
+   body: { "userName": "Nguyen A", "email": "nguyena@gmail.com", "password": "123456" }
+   - 400: thiếu userName / email / password
+   - 409: email đã tồn tại
+   - 201: đăng ký thành công (password được mã hoá bằng bcrypt)
+
+2. POST /users/login
+   body: { "email": "nguyena@gmail.com", "password": "123456" }
+   - 400: thiếu email / password
+   - 401: email hoặc mật khẩu không đúng
+   - 200: { apiKey: "mern-$<userId>$-$<email>$-$<randomstring>$" }
+   Mỗi lần đăng nhập sinh randomstring mới, apiKey cũ hết hiệu lực (mỗi user chỉ có 1 apiKey).
+
+3. POST /posts?apiKey=...
+   body: { "userId": "<userId>", "content": "Nội dung" }
+   - 401: thiếu apiKey / apiKey không xác thực được
+   - 400: thiếu userId / content
+   - 403: userId khác với người dùng sở hữu apiKey
+   - 201: tạo thành công (createdAt, updatedAt tự động)
+
+4. PUT /posts/:id?apiKey=...
+   body: { "content": "Nội dung mới" }
+   - 401: thiếu apiKey / apiKey không xác thực được
+   - 400: id không hợp lệ / thiếu content
+   - 404: bài post không tồn tại
+   - 403: không phải người tạo bài post
+   - 200: cập nhật thành công (updatedAt tự động cập nhật)

@@ -1,0 +1,16 @@
+{
+  "name": "midtest-web99",
+  "version": "1.0.0",
+  "description": "MERN - Kiem tra giua ky: REST API dang ky, dang nhap, tao va cap nhat bai post",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "express": "^5.2.1",
+    "mongoose": "^9.10.4"
+  }
+}
