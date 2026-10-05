@@ -40,3 +40,10 @@ API:
    - 404: bài post không tồn tại
    - 403: không phải người tạo bài post
    - 200: cập nhật thành công (updatedAt tự động cập nhật)
+
+TEST BẰNG POSTMAN:
+  1. Chạy MongoDB và `npm start`
+  2. Postman > Import > chọn file MidTest-WEB99.postman_collection.json
+  3. Gửi lần lượt các request từ trên xuống. Request "Login - thành công" tự lưu apiKey, userId;
+     "Create post - thành công" tự lưu postId vào biến collection.
+  (Muốn test lại từ đầu: đổi biến "email" của collection sang email mới.)

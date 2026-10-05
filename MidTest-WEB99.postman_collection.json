@@ -1,0 +1,155 @@
+{
+  "info": {
+    "name": "MidTest-WEB99",
+    "description": "Test 4 API kiểm tra giữa kỳ. Chạy lần lượt từ trên xuống: apiKey, userId, postId được tự động lưu vào biến collection.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "email", "value": "nguyena@gmail.com" },
+    { "key": "password", "value": "123456" },
+    { "key": "apiKey", "value": "" },
+    { "key": "userId", "value": "" },
+    { "key": "postId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Users",
+      "item": [
+        {
+          "name": "Register - thành công",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"userName\": \"Nguyen A\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}" },
+            "url": "{{baseUrl}}/users/register"
+          }
+        },
+        {
+          "name": "Register - lỗi email đã tồn tại (409)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"userName\": \"Nguyen A\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}" },
+            "url": "{{baseUrl}}/users/register"
+          }
+        },
+        {
+          "name": "Register - lỗi thiếu userName (400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"khac@gmail.com\",\n  \"password\": \"123456\"\n}" },
+            "url": "{{baseUrl}}/users/register"
+          }
+        },
+        {
+          "name": "Login - lỗi sai mật khẩu (401)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"saimatkhau\"\n}" },
+            "url": "{{baseUrl}}/users/login"
+          }
+        },
+        {
+          "name": "Login - thành công (lưu apiKey)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.apiKey) {",
+                  "  pm.collectionVariables.set('apiKey', res.apiKey);",
+                  "  pm.collectionVariables.set('userId', res.apiKey.split('$')[1]);",
+                  "}",
+                  "pm.test('Trả về apiKey', () => pm.expect(res.apiKey).to.match(/^mern-\\$.+\\$-\\$.+\\$-\\$.+\\$$/));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}" },
+            "url": "{{baseUrl}}/users/login"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Posts",
+      "item": [
+        {
+          "name": "Create post - lỗi thiếu apiKey (401)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"content\": \"Bài viết đầu tiên\"\n}" },
+            "url": "{{baseUrl}}/posts"
+          }
+        },
+        {
+          "name": "Create post - lỗi thiếu content (400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"userId\": \"{{userId}}\"\n}" },
+            "url": { "raw": "{{baseUrl}}/posts?apiKey={{apiKey}}", "host": ["{{baseUrl}}"], "path": ["posts"], "query": [{ "key": "apiKey", "value": "{{apiKey}}" }] }
+          }
+        },
+        {
+          "name": "Create post - thành công (lưu postId)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data._id) pm.collectionVariables.set('postId', res.data._id);",
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"content\": \"Bài viết đầu tiên\"\n}" },
+            "url": { "raw": "{{baseUrl}}/posts?apiKey={{apiKey}}", "host": ["{{baseUrl}}"], "path": ["posts"], "query": [{ "key": "apiKey", "value": "{{apiKey}}" }] }
+          }
+        },
+        {
+          "name": "Update post - lỗi apiKey sai (401)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"content\": \"Nội dung mới\"\n}" },
+            "url": { "raw": "{{baseUrl}}/posts/{{postId}}?apiKey=abcd", "host": ["{{baseUrl}}"], "path": ["posts", "{{postId}}"], "query": [{ "key": "apiKey", "value": "abcd" }] }
+          }
+        },
+        {
+          "name": "Update post - lỗi post không tồn tại (404)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"content\": \"Nội dung mới\"\n}" },
+            "url": { "raw": "{{baseUrl}}/posts/507f1f77bcf86cd799439011?apiKey={{apiKey}}", "host": ["{{baseUrl}}"], "path": ["posts", "507f1f77bcf86cd799439011"], "query": [{ "key": "apiKey", "value": "{{apiKey}}" }] }
+          }
+        },
+        {
+          "name": "Update post - thành công",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"content\": \"Nội dung đã được cập nhật\"\n}" },
+            "url": { "raw": "{{baseUrl}}/posts/{{postId}}?apiKey={{apiKey}}", "host": ["{{baseUrl}}"], "path": ["posts", "{{postId}}"], "query": [{ "key": "apiKey", "value": "{{apiKey}}" }] }
+          }
+        }
+      ]
+    }
+  ]
+}
